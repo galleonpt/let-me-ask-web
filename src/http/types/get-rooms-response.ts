@@ -1,6 +1,6 @@
 export interface IRoomListItem {
     id: string;
     name: string;
-    createdAt: string;
+    created_at: string;
     questionsCount: number;
 }

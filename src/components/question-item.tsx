@@ -6,7 +6,7 @@ interface Question {
     id: string;
     question: string;
     answer?: string | null;
-    createdAt: string;
+    created_at: string;
 }
 
 interface QuestionItemProps {
@@ -66,7 +66,7 @@ export function QuestionItem({ question }: QuestionItemProps) {
 
                     <div className="flex justify-end">
                         <span className="text-muted-foreground text-xs">
-                            {dayjs(question.createdAt).toNow()}
+                            {dayjs(question.created_at).toNow()}
                         </span>
                     </div>
                 </div>
