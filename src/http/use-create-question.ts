@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CreateQuestionRequest } from "./types/create-question-request";
 import type { CreateQuestionResponse } from "./types/create-question-response";
+import type { GetRoomQuestionsItemResponse } from "./types/get-room-questions-response";
 
 export function useCreateQuestion(roomId: string) {
     const queryClient = useQueryClient();
@@ -23,73 +24,70 @@ export function useCreateQuestion(roomId: string) {
             return result;
         },
 
-        // Executa no momento que for feita a chamada p/ API
-        // onMutate({ question }) {
-        //     const questions =
-        //         queryClient.getQueryData<GetRoomQuestionsItemResponse>([
-        //             "get-questions",
-        //             roomId,
-        //         ]);
+        onMutate({ question }) {
+            const questions = queryClient.getQueryData<
+                GetRoomQuestionsItemResponse[]
+            >(["get-room-questions", roomId]);
 
-        //     const questionsArray = questions ?? [];
+            const questionsArray = questions ?? [];
 
-        //     const newQuestion = {
-        //         id: crypto.randomUUID(),
-        //         question,
-        //         answer: null,
-        //         createdAt: new Date().toISOString(),
-        //         isGeneratingAnswer: true,
-        //     };
+            const newQuestion: GetRoomQuestionsItemResponse = {
+                id: crypto.randomUUID(),
+                question,
+                answer: null,
+                createdAt: new Date().toISOString(),
+                isGeneratingAnswer: true,
+            };
 
-        //     queryClient.setQueryData<GetRoomQuestionsItemResponse>(
-        //         ["get-questions", roomId],
-        //         [newQuestion, ...questionsArray]
-        //     );
+            queryClient.setQueryData<GetRoomQuestionsItemResponse[]>(
+                ["get-room-questions", roomId],
+                [newQuestion, ...questionsArray]
+            );
 
-        //     return { newQuestion, questions };
-        // },
-
-        // onSuccess(data, _variables, context) {
-        //     queryClient.setQueryData<GetRoomQuestionsItemResponse>(
-        //         ["get-questions", roomId],
-        //         (questions) => {
-        //             if (!questions) {
-        //                 return questions;
-        //             }
-
-        //             if (!context.newQuestion) {
-        //                 return questions;
-        //             }
-
-        //             return questions.map((question) => {
-        //                 if (question.id === context.newQuestion.id) {
-        //                     return {
-        //                         ...context.newQuestion,
-        //                         id: data.questionId,
-        //                         answer: data.answer,
-        //                         isGeneratingAnswer: false,
-        //                     };
-        //                 }
-
-        //                 return question;
-        //             });
-        //         }
-        //     );
-        // },
-
-        // onError(_error, _variables, context) {
-        //     if (context?.questions) {
-        //         queryClient.setQueryData<GetRoomQuestionsItemResponse>(
-        //             ["get-questions", roomId],
-        //             context.questions
-        //         );
-        //     }
-        // },
-
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["get-room-questions", roomId],
-            });
+            return { newQuestion, questions };
         },
+
+        onSuccess(data, _variables, context) {
+            queryClient.setQueryData<GetRoomQuestionsItemResponse[]>(
+                ["get-room-questions", roomId],
+                (questions) => {
+                    if (!questions) {
+                        return questions;
+                    }
+
+                    if (!context.newQuestion) {
+                        return questions;
+                    }
+
+                    return questions.map((question) => {
+                        if (question.id === context.newQuestion.id) {
+                            return {
+                                ...context.newQuestion,
+                                id: data.questionId,
+                                answer: data.answer,
+                                isGeneratingAnswer: false,
+                            };
+                        }
+
+                        return question;
+                    });
+                }
+            );
+        },
+
+        onError(_error, _variables, context) {
+            if (context?.questions) {
+                queryClient.setQueryData<GetRoomQuestionsItemResponse[]>(
+                    ["get-room-questions", roomId],
+                    context.questions
+                );
+            }
+        },
+
+        // onSuccess: () => {
+        //     queryClient.invalidateQueries({
+        //         queryKey: ["get-room-questions", roomId],
+        //     });
+        // },
     });
 }
